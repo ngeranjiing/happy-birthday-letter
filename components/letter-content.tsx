@@ -1,6 +1,50 @@
+"use client"
+
 import { Crosshair, Glasses, ShoppingCart, Star, Zap } from "lucide-react"
+import { useState, useEffect } from "react"
+import { getInstagramImage } from "@/app/actions"
+
+// 📸 GANTI LINK FOTO DISINI BOSS!
+// Bisa pake link Unsplash atau link postingan Instagram (public)
+const TARGET_EVIDENCE_IMAGES = [
+  "https://images.unsplash.com/photo-1541364983171-a8ba01e95cfc?w=500&h=500&fit=crop", // Ramen/Food
+  "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=500&h=500&fit=crop", // Cat/Sakamoto
+  "https://www.instagram.com/p/DR13CZej-h5/", // Party
+  "https://www.instagram.com/p/DR13CZej-h5/",
+]
 
 export function LetterContent() {
+  const [images, setImages] = useState(TARGET_EVIDENCE_IMAGES)
+
+  useEffect(() => {
+    const fetchInstagramImages = async () => {
+      let hasUpdates = false
+      const resolvedImages = await Promise.all(
+        TARGET_EVIDENCE_IMAGES.map(async (url) => {
+          // Kalo link-nya instagram, kita coba ambil gambarnya
+          if (url.includes("instagram.com")) {
+            try {
+              const scrapedUrl = await getInstagramImage(url)
+              if (scrapedUrl) {
+                hasUpdates = true
+                return scrapedUrl
+              }
+            } catch (e) {
+              console.error("Gagal ambil gambar IG:", e)
+            }
+          }
+          return url
+        })
+      )
+
+      if (hasUpdates) {
+        setImages(resolvedImages)
+      }
+    }
+
+    fetchInstagramImages()
+  }, [])
+
   return (
     <article className="bg-card rounded-none shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] p-8 md:p-12 border-4 border-black relative overflow-hidden group">
 
@@ -80,12 +124,7 @@ export function LetterContent() {
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
-          {[
-            "https://images.unsplash.com/photo-1541364983171-a8ba01e95cfc?w=500&h=500&fit=crop", // Ramen or Food
-            "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=500&h=500&fit=crop", // Cat (Sakamoto vibes)
-            "https://images.unsplash.com/photo-1516724562728-afc824a36e84?w=500&h=500&fit=crop", // Party
-            "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=500&h=500&fit=crop", // City/Store
-          ].map((src, i) => (
+          {images.map((src, i) => (
             <div
               key={i}
               className="relative group cursor-pointer transition-all duration-300 hover:z-30 hover:scale-105"
